@@ -10,18 +10,42 @@ if(isset($_POST['login']))
      $uname=$_POST['username'];
     $password=md5($_POST['password']);
     // Fetch data from database on the basis of username/email and password
-$sql =mysqli_query($con,"SELECT AdminUserName,AdminEmailId,AdminPassword,userType FROM tbladmin WHERE (AdminUserName='$uname' && AdminPassword='$password')");
- $num=mysqli_fetch_array($sql);
-if($num>0)
-{
+     $data=array('email'=>$uname,'password'=>$password);
+   
+   $azfendpoint='https://function189.azurewebsites.net/api/HttpTrigger1?code=xr704XgbAIiQmoxP3y5qN13kzjwKd8pRkfhK-h64pIeWAzFuRqmysg==';
+   $options = array(
+        'http' => array(
+            'method' => 'POST',
+            'content' => json_encode($data)
+        )
+    );
+    $context = stream_context_create($options);
+    $result = file_get_contents($azfendpoint, false, $context);
+   if ($result !== FALSE) {
+	$response = json_decode($result, true);
 
-$_SESSION['login']=$_POST['username'];
-$_SESSION['utype']=$num['userType'];
+	// Check if authentication was successful
+	if ($response['authenticated']) {
+		$_SESSION['login']=$_POST['username'];
+  $_SESSION['utype']=$num['userType'];
     echo "<script type='text/javascript'> document.location = 'dashboard.php'; </script>";
-  }else{
-echo "<script>alert('Invalid Details');</script>";
-  }
- 
+	} else {
+		// Authentication failed, handle accordingly
+		$extra="login.php";
+		$email=$_POST['email'];
+		$uip=$_SERVER['REMOTE_ADDR'];
+		$status=0;
+		$log=mysqli_query($con,"insert into userlog(userEmail,userip,status) values('$email','$uip','$status')");
+		$host  = $_SERVER['HTTP_HOST'];
+		$uri  = rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
+		header("location:http://$host$uri/$extra");
+		$_SESSION['errmsg']="Invalid email id or Password";
+		exit();
+	}
+} else {
+	// Error in communicating with Azure Function
+  echo "<script>alert('Invalid Details');</script>";
+}
 }
 ?>
 
