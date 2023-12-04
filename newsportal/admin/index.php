@@ -31,20 +31,12 @@ if(isset($_POST['login']))
     echo "<script type='text/javascript'> document.location = 'dashboard.php'; </script>";
 	} else {
 		// Authentication failed, handle accordingly
-		$extra="login.php";
-		$email=$_POST['email'];
-		$uip=$_SERVER['REMOTE_ADDR'];
-		$status=0;
-		$log=mysqli_query($con,"insert into userlog(userEmail,userip,status) values('$email','$uip','$status')");
-		$host  = $_SERVER['HTTP_HOST'];
-		$uri  = rtrim(dirname($_SERVER['PHP_SELF']),'/\\');
-		header("location:http://$host$uri/$extra");
-		$_SESSION['errmsg']="Invalid email id or Password";
-		exit();
+		echo "<script>alert('Invalid Details');</script>";
 	}
 } else {
 	// Error in communicating with Azure Function
-  echo "<script>alert('Invalid Details');</script>";
+	   echo "<script>not authenticated</script>";
+  
 }
 }
 ?>
